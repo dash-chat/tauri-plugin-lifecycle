@@ -1,0 +1,3 @@
+[default]
+description = "Default permissions for the plugin. It exposes no invoke commands, so no capabilities are granted."
+permissions = []
