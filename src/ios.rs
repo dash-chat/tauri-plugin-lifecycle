@@ -8,7 +8,7 @@ use tauri::{
     Manager, Runtime,
 };
 
-tauri::ios_plugin_binding!(init_plugin_ios_lifecycle);
+tauri::ios_plugin_binding!(init_plugin_lifecycle);
 
 // Type-erased handlers: the concrete `AppHandle<R>` is captured inside, so no
 // generic parameter leaks into these globals. Set once at plugin setup.
@@ -35,7 +35,7 @@ pub fn setup<R: Runtime, C: serde::de::DeserializeOwned>(
         let app = app.clone();
         let _ = RESUME.set(Box::new(move || handler(app.clone())));
     }
-    let handle = api.register_ios_plugin(init_plugin_ios_lifecycle)?;
+    let handle = api.register_ios_plugin(init_plugin_lifecycle)?;
     app.manage(LifecycleState(handle));
     Ok(())
 }
@@ -53,7 +53,7 @@ unsafe impl Send for SendPtr {}
 /// # Safety
 /// `done` must be a valid C function pointer and `ctx` the context it expects.
 #[no_mangle]
-pub extern "C" fn tauri_plugin_ios_lifecycle_did_enter_background(
+pub extern "C" fn tauri_plugin_lifecycle_did_enter_background(
     done: extern "C" fn(*mut c_void),
     ctx: *mut c_void,
 ) {
@@ -73,7 +73,7 @@ pub extern "C" fn tauri_plugin_ios_lifecycle_did_enter_background(
 
 /// Called from Swift's `willEnterForeground` observer.
 #[no_mangle]
-pub extern "C" fn tauri_plugin_ios_lifecycle_will_enter_foreground() {
+pub extern "C" fn tauri_plugin_lifecycle_will_enter_foreground() {
     if let Some(handler) = RESUME.get() {
         let fut = handler();
         tauri::async_runtime::spawn(fut);

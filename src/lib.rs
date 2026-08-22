@@ -12,7 +12,7 @@
 //!
 //! ```no_run
 //! tauri::Builder::default().plugin(
-//!     tauri_plugin_ios_lifecycle::Builder::new()
+//!     tauri_plugin_lifecycle::Builder::new()
 //!         .on_pause(|app| async move { /* release resources */ })
 //!         .on_resume(|app| async move { /* re-acquire resources */ })
 //!         .build(),
@@ -72,7 +72,7 @@ impl<R: Runtime> Builder<R> {
     pub fn build(self) -> TauriPlugin<R> {
         let on_pause = self.on_pause;
         let on_resume = self.on_resume;
-        PluginBuilder::new("ios-lifecycle")
+        PluginBuilder::new("lifecycle")
             .setup(move |_app, _api| {
                 #[cfg(target_os = "ios")]
                 ios::setup(_app, _api, on_pause, on_resume)?;

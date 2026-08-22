@@ -1,11 +1,11 @@
 [package]
-name = "tauri-plugin-ios-lifecycle"
+name = "tauri-plugin-lifecycle"
 version = "0.1.0"
-description = "React to iOS app background/foreground transitions from Rust, with a UIBackgroundTask assertion so async teardown completes before suspension."
+description = "React to iOS/Android app background/foreground transitions from Rust, with a UIBackgroundTask assertion so async teardown completes before suspension."
 edition = "2021"
 rust-version = "1.77.2"
 exclude = ["/examples", "/.tauri"]
-links = "tauri-plugin-ios-lifecycle"
+links = "tauri-plugin-lifecycle"
 license = "MIT"
 
 [dependencies]
