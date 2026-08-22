@@ -3,13 +3,13 @@ import UIKit
 import WebKit
 
 // Implemented in Rust (src/lib.rs), linked with C ABI.
-@_silgen_name("tauri_plugin_ios_lifecycle_did_enter_background")
+@_silgen_name("tauri_plugin_lifecycle_did_enter_background")
 func rustDidEnterBackground(
   _ done: @convention(c) (UnsafeMutableRawPointer?) -> Void,
   _ ctx: UnsafeMutableRawPointer?
 )
 
-@_silgen_name("tauri_plugin_ios_lifecycle_will_enter_foreground")
+@_silgen_name("tauri_plugin_lifecycle_will_enter_foreground")
 func rustWillEnterForeground()
 
 // Boxes the "end the background-task assertion" closure so it can be handed to
@@ -39,7 +39,7 @@ class LifecyclePlugin: Plugin {
       ) { _ in
         let app = UIApplication.shared
         var bgTask: UIBackgroundTaskIdentifier = .invalid
-        bgTask = app.beginBackgroundTask(withName: "tauri-plugin-ios-lifecycle") {
+        bgTask = app.beginBackgroundTask(withName: "tauri-plugin-lifecycle") {
           if bgTask != .invalid {
             app.endBackgroundTask(bgTask)
             bgTask = .invalid
@@ -75,7 +75,7 @@ class LifecyclePlugin: Plugin {
   }
 }
 
-@_cdecl("init_plugin_ios_lifecycle")
+@_cdecl("init_plugin_lifecycle")
 func initPlugin() -> Plugin {
   return LifecyclePlugin()
 }

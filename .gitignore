@@ -2,4 +2,6 @@
 Cargo.lock
 /ios/.build
 /ios/Package.resolved
+/android/build
+/android/.tauri
 /.tauri
