@@ -1,4 +1,4 @@
-package com.plugin.ioslifecycle
+package org.dashchat.tauripluginlifecycle
 
 import android.app.Activity
 import android.webkit.WebView

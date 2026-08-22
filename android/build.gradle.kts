@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.plugin.ioslifecycle"
+    namespace = "org.dashchat.tauripluginlifecycle"
     compileSdk = 34
 
     defaultConfig {

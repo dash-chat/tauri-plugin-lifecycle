@@ -28,14 +28,15 @@ pub fn setup<R: Runtime, C: serde::de::DeserializeOwned>(
         let app = app.clone();
         let _ = RESUME.set(Box::new(move || handler(app.clone())));
     }
-    let handle = api.register_android_plugin("com.plugin.ioslifecycle", "LifecyclePlugin")?;
+    let handle =
+        api.register_android_plugin("org.dashchat.tauripluginlifecycle", "LifecyclePlugin")?;
     app.manage(LifecycleState(handle));
     Ok(())
 }
 
 /// Called from Kotlin's `onStop` (activity fully hidden, analogous to iOS didEnterBackground).
 #[no_mangle]
-pub extern "C" fn Java_com_plugin_ioslifecycle_LifecyclePlugin_nativeOnStop(
+pub extern "C" fn Java_org_dashchat_tauripluginlifecycle_LifecyclePlugin_nativeOnStop(
     _env: jni::JNIEnv,
     _this: jni::objects::JObject,
 ) {
@@ -47,7 +48,7 @@ pub extern "C" fn Java_com_plugin_ioslifecycle_LifecyclePlugin_nativeOnStop(
 
 /// Called from Kotlin's `onStart` (activity becoming visible, analogous to iOS willEnterForeground).
 #[no_mangle]
-pub extern "C" fn Java_com_plugin_ioslifecycle_LifecyclePlugin_nativeOnStart(
+pub extern "C" fn Java_org_dashchat_tauripluginlifecycle_LifecyclePlugin_nativeOnStart(
     _env: jni::JNIEnv,
     _this: jni::objects::JObject,
 ) {
