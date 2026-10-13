@@ -28,6 +28,7 @@ pub fn setup<R: Runtime, C: serde::de::DeserializeOwned>(
         let app = app.clone();
         let _ = RESUME.set(Box::new(move || handler(app.clone())));
     }
+    crate::transitions::start();
     let handle =
         api.register_android_plugin("org.dashchat.tauripluginlifecycle", "LifecyclePlugin")?;
     app.manage(LifecycleState(handle));
@@ -41,8 +42,7 @@ pub extern "C" fn Java_org_dashchat_tauripluginlifecycle_LifecyclePlugin_nativeO
     _this: jni::objects::JObject,
 ) {
     if let Some(handler) = PAUSE.get() {
-        let fut = handler();
-        tauri::async_runtime::spawn(fut);
+        crate::transitions::push(handler());
     }
 }
 
@@ -53,7 +53,6 @@ pub extern "C" fn Java_org_dashchat_tauripluginlifecycle_LifecyclePlugin_nativeO
     _this: jni::objects::JObject,
 ) {
     if let Some(handler) = RESUME.get() {
-        let fut = handler();
-        tauri::async_runtime::spawn(fut);
+        crate::transitions::push(handler());
     }
 }

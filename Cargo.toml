@@ -11,9 +11,13 @@ license = "MIT"
 [dependencies]
 tauri = { version = "2" }
 serde = "1"
+tokio = { version = "1", features = ["sync", "macros"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 jni = { version = "0.21", default-features = false }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt", "time"] }
 
 [build-dependencies]
 tauri-plugin = { version = "2", features = ["build"] }

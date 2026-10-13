@@ -50,6 +50,11 @@ impl<R: Runtime> Builder<R> {
     /// Runs when the app enters the background. The app stays alive under a
     /// `UIBackgroundTask` assertion until this future resolves, so use it to
     /// flush/close anything holding a file lock. Keep it fast (≈ seconds).
+    ///
+    /// Handlers run one at a time, in the order the transitions happen. If the
+    /// app comes back before this future resolves, it is dropped at its current
+    /// `.await` and `on_resume` runs next, so `on_resume` must undo whatever a
+    /// pause left half-done (and the other way round).
     pub fn on_pause<F, Fut>(mut self, handler: F) -> Self
     where
         F: Fn(AppHandle<R>) -> Fut + Send + Sync + 'static,
@@ -59,7 +64,8 @@ impl<R: Runtime> Builder<R> {
         self
     }
 
-    /// Runs when the app returns to the foreground.
+    /// Runs when the app returns to the foreground. Dropped at its current
+    /// `.await` if the app leaves again first; see [`Self::on_pause`].
     pub fn on_resume<F, Fut>(mut self, handler: F) -> Self
     where
         F: Fn(AppHandle<R>) -> Fut + Send + Sync + 'static,
@@ -88,6 +94,9 @@ impl<R: Runtime> Builder<R> {
             .build()
     }
 }
+
+#[cfg(any(target_os = "ios", target_os = "android", test))]
+mod transitions;
 
 #[cfg(target_os = "ios")]
 mod ios;
