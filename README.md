@@ -49,6 +49,11 @@ tauri::Builder::default().plugin(
 its future resolves, then the assertion is released and iOS suspends cleanly.
 Keep it fast (seconds).
 
+Handlers run one at a time, in the order the transitions happen. If the app
+switches again before a handler resolves, that handler is dropped at its
+current `.await` and the next one runs: whatever a pause leaves half-done, the
+resume after it must be able to undo, and the other way round.
+
 ## How it works
 
 ### iOS

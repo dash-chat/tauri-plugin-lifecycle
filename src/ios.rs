@@ -35,6 +35,7 @@ pub fn setup<R: Runtime, C: serde::de::DeserializeOwned>(
         let app = app.clone();
         let _ = RESUME.set(Box::new(move || handler(app.clone())));
     }
+    crate::transitions::start();
     let handle = api.register_ios_plugin(init_plugin_lifecycle)?;
     app.manage(LifecycleState(handle));
     Ok(())
@@ -46,9 +47,23 @@ pub fn setup<R: Runtime, C: serde::de::DeserializeOwned>(
 struct SendPtr(*mut c_void);
 unsafe impl Send for SendPtr {}
 
-/// Called from Swift's `didEnterBackground` observer (`ios/Sources`). Runs the
-/// registered pause future, then invokes `done(ctx)` so Swift can end its
-/// background-task assertion. If no handler is registered, ends it immediately.
+/// Ends Swift's background-task assertion when dropped: once the pause future
+/// resolves, or when a resume drops it first.
+struct EndBackgroundTask {
+    done: extern "C" fn(*mut c_void),
+    ctx: SendPtr,
+}
+
+impl Drop for EndBackgroundTask {
+    fn drop(&mut self) {
+        (self.done)(self.ctx.0);
+    }
+}
+
+/// Called from Swift's `didEnterBackground` observer (`ios/Sources`). Queues
+/// the registered pause future, and ends Swift's background-task assertion
+/// once it resolves or is dropped. If no handler is registered, ends it
+/// immediately.
 ///
 /// # Safety
 /// `done` must be a valid C function pointer and `ctx` the context it expects.
@@ -57,17 +72,16 @@ pub extern "C" fn tauri_plugin_lifecycle_did_enter_background(
     done: extern "C" fn(*mut c_void),
     ctx: *mut c_void,
 ) {
-    let ctx = SendPtr(ctx);
-    match PAUSE.get() {
-        Some(handler) => {
-            let fut = handler();
-            tauri::async_runtime::spawn(async move {
-                fut.await;
-                let ctx = ctx;
-                done(ctx.0);
-            });
-        }
-        None => done(ctx.0),
+    let end_background_task = EndBackgroundTask {
+        done,
+        ctx: SendPtr(ctx),
+    };
+    if let Some(handler) = PAUSE.get() {
+        let pause = handler();
+        crate::transitions::push(Box::pin(async move {
+            let _end_background_task = end_background_task;
+            pause.await;
+        }));
     }
 }
 
@@ -75,7 +89,6 @@ pub extern "C" fn tauri_plugin_lifecycle_did_enter_background(
 #[no_mangle]
 pub extern "C" fn tauri_plugin_lifecycle_will_enter_foreground() {
     if let Some(handler) = RESUME.get() {
-        let fut = handler();
-        tauri::async_runtime::spawn(fut);
+        crate::transitions::push(handler());
     }
 }
